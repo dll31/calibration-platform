@@ -25,48 +25,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// ----------------------------------------------------------------------------
-
-// These functions are redefined locally, to avoid references to some
-// heavy implementations in the standard C++ library.
+#include "BlinkLed.h"
 
 // ----------------------------------------------------------------------------
 
-#include <cstdlib>
-#include <sys/types.h>
-#include "diag/Trace.h"
-
-// ----------------------------------------------------------------------------
-
-namespace __gnu_cxx
+void
+blink_led_init()
 {
-  void
-  __attribute__((noreturn))
-  __verbose_terminate_handler();
+  // Enable GPIO Peripheral clock
+  RCC_APB2PeriphClockCmd(BLINK_RCC_MASKx(BLINK_PORT_NUMBER), ENABLE);
 
-  void
-  __verbose_terminate_handler()
-  {
-    trace_puts(__func__);
-    abort();
-  }
+  GPIO_InitTypeDef GPIO_InitStructure;
+
+  // Configure pin in output push/pull mode
+  GPIO_InitStructure.GPIO_Pin = BLINK_PIN_MASK(BLINK_PIN_NUMBER);
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  GPIO_Init(BLINK_GPIOx(BLINK_PORT_NUMBER), &GPIO_InitStructure);
+
+  // Start with led turned off
+  blink_led_off();
 }
 
 // ----------------------------------------------------------------------------
-
-extern "C"
-{
-  void
-  __attribute__((noreturn))
-  __cxa_pure_virtual();
-
-  void
-  __cxa_pure_virtual()
-  {
-    trace_puts(__func__);
-    abort();
-  }
-}
-
-// ----------------------------------------------------------------------------
-

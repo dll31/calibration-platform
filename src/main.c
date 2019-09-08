@@ -2,9 +2,12 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include "diag/Trace.h"
+#include <stm32f10x.h>
+//#include <usart.h>
+//#include <timer.h>
 
 #include "Timer.h"
-#include "BlinkLed.h"
+//#include "BlinkLed.h"
 #include "state.h"
 #include "drivers/servo.h"
 
@@ -26,20 +29,36 @@
 
 int main(int argc, char* argv[])
 {
-//	uint8_t hor_rot = 18;
-	uint8_t vert_rot = 10;
-//	uint8_t grad_one_hor_rot = 360 / hor_rot;
-	uint8_t grad_one_vert_rot = 180 / vert_rot;
-	//inits
+	timer_start();
 
-	for (int i = 0; i < 10; i++){
-		//запуск двигателя
-		for (int j = 0; j < vert_rot; j++){
-			if (i % 2 == 0) {change_pulse(j * vert_rot);}
-			else {change_pulse(j * (vert_rot - j));}
-			//замер
-		}
+	servo_init();
+
+	timer_sleep(10000);
+
+	for (int  i = 0; i < 100; i++){
+		TIM4->CCR1 = i;
+//		trace_printf("%d ", i);
 	}
+
+//	servo_init();
+//	servo_timer_init();
+////	uint8_t hor_rot = 18;
+//	uint8_t vert_rot = 10;
+////	uint8_t grad_one_hor_rot = 360 / hor_rot;
+////	uint8_t grad_one_vert_rot = 180 / vert_rot;
+//	//inits
+//
+//	servo_rotate(100);
+
+//	for (int i = 0; i < 10; i++){
+//		//запуск двигателя
+//		for (int j = 0; j < vert_rot; j++){
+//			if (i % 2 == 0) {change_pulse(j * vert_rot);}
+//			else {change_pulse(j * (vert_rot - j));}
+//			for (int f = 0; f < 1000000; f++) {volatile int x = 0;}
+//			//замер
+//		}
+//	}
 
   /*// Send a greeting to the trace device (skipped on Release).
   trace_puts("Hello ARM World!");

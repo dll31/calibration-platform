@@ -25,48 +25,62 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// ----------------------------------------------------------------------------
-
-// These functions are redefined locally, to avoid references to some
-// heavy implementations in the standard C++ library.
+#include "Timer.h"
+#include "cortexm/ExceptionHandlers.h"
 
 // ----------------------------------------------------------------------------
 
-#include <cstdlib>
-#include <sys/types.h>
-#include "diag/Trace.h"
+#if defined(USE_HAL_DRIVER)
+void HAL_IncTick(void);
+#endif
+
+// Forward declarations.
+
+void
+timer_tick (void);
 
 // ----------------------------------------------------------------------------
 
-namespace __gnu_cxx
+volatile timer_ticks_t timer_delayCount;
+
+// ----------------------------------------------------------------------------
+
+void
+timer_start (void)
 {
-  void
-  __attribute__((noreturn))
-  __verbose_terminate_handler();
+  // Use SysTick as reference for the delay loops.
+  SysTick_Config (SystemCoreClock / TIMER_FREQUENCY_HZ);
+}
 
-  void
-  __verbose_terminate_handler()
-  {
-    trace_puts(__func__);
-    abort();
-  }
+void
+timer_sleep (timer_ticks_t ticks)
+{
+  timer_delayCount = ticks;
+
+  // Busy wait until the SysTick decrements the counter to zero.
+  while (timer_delayCount != 0u)
+    ;
+}
+
+void
+timer_tick (void)
+{
+  // Decrement to zero the counter used by the delay routine.
+  if (timer_delayCount != 0u)
+    {
+      --timer_delayCount;
+    }
+}
+
+// ----- SysTick_Handler() ----------------------------------------------------
+
+void
+SysTick_Handler (void)
+{
+#if defined(USE_HAL_DRIVER)
+  HAL_IncTick();
+#endif
+  timer_tick ();
 }
 
 // ----------------------------------------------------------------------------
-
-extern "C"
-{
-  void
-  __attribute__((noreturn))
-  __cxa_pure_virtual();
-
-  void
-  __cxa_pure_virtual()
-  {
-    trace_puts(__func__);
-    abort();
-  }
-}
-
-// ----------------------------------------------------------------------------
-

@@ -25,48 +25,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// ----------------------------------------------------------------------------
+#ifndef TIMER_H_
+#define TIMER_H_
 
-// These functions are redefined locally, to avoid references to some
-// heavy implementations in the standard C++ library.
-
-// ----------------------------------------------------------------------------
-
-#include <cstdlib>
-#include <sys/types.h>
-#include "diag/Trace.h"
+#include "cmsis_device.h"
 
 // ----------------------------------------------------------------------------
 
-namespace __gnu_cxx
-{
-  void
-  __attribute__((noreturn))
-  __verbose_terminate_handler();
+#define TIMER_FREQUENCY_HZ (1000u)
 
-  void
-  __verbose_terminate_handler()
-  {
-    trace_puts(__func__);
-    abort();
-  }
-}
+typedef uint32_t timer_ticks_t;
+
+extern volatile timer_ticks_t timer_delayCount;
+
+extern void
+timer_start (void);
+
+extern void
+timer_sleep (timer_ticks_t ticks);
 
 // ----------------------------------------------------------------------------
 
-extern "C"
-{
-  void
-  __attribute__((noreturn))
-  __cxa_pure_virtual();
-
-  void
-  __cxa_pure_virtual()
-  {
-    trace_puts(__func__);
-    abort();
-  }
-}
-
-// ----------------------------------------------------------------------------
-
+#endif // TIMER_H_

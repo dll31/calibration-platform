@@ -25,48 +25,48 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// ----------------------------------------------------------------------------
-
-// These functions are redefined locally, to avoid references to some
-// heavy implementations in the standard C++ library.
+// Do not include on semihosting and when freestanding
+#if !defined(OS_USE_SEMIHOSTING) && !(__STDC_HOSTED__ == 0)
 
 // ----------------------------------------------------------------------------
 
-#include <cstdlib>
-#include <sys/types.h>
+#include <errno.h>
 #include "diag/Trace.h"
 
 // ----------------------------------------------------------------------------
 
-namespace __gnu_cxx
-{
-  void
-  __attribute__((noreturn))
-  __verbose_terminate_handler();
+// When using retargetted configurations, the standard write() system call,
+// after a long way inside newlib, finally calls this implementation function.
 
-  void
-  __verbose_terminate_handler()
-  {
-    trace_puts(__func__);
-    abort();
-  }
+// Based on the file descriptor, it can send arrays of characters to
+// different physical devices.
+
+// Currently only the output and error file descriptors are tested,
+// and the characters are forwarded to the trace device, mainly
+// for demonstration purposes. Adjust it for your specific needs.
+
+// For freestanding applications this file is not used and can be safely
+// ignored.
+
+ssize_t
+_write (int fd, const char* buf, size_t nbyte);
+
+ssize_t
+_write (int fd __attribute__((unused)), const char* buf __attribute__((unused)),
+	size_t nbyte __attribute__((unused)))
+{
+#if defined(TRACE)
+  // STDOUT and STDERR are routed to the trace device
+  if (fd == 1 || fd == 2)
+    {
+      return trace_write (buf, nbyte);
+    }
+#endif // TRACE
+
+  errno = ENOSYS;
+  return -1;
 }
 
 // ----------------------------------------------------------------------------
 
-extern "C"
-{
-  void
-  __attribute__((noreturn))
-  __cxa_pure_virtual();
-
-  void
-  __cxa_pure_virtual()
-  {
-    trace_puts(__func__);
-    abort();
-  }
-}
-
-// ----------------------------------------------------------------------------
-
+#endif // !defined(OS_USE_SEMIHOSTING) && !(__STDC_HOSTED__ == 0)
