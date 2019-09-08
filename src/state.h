@@ -13,12 +13,7 @@
 #include <stm32f10x_gpio.h>
 #include <stdlib.h>
 
-GPIO_InitTypeDef port;
-TIM_TimeBaseInitTypeDef timer;
-TIM_OCInitTypeDef timerPWM;
-
-//TIM_TimeBaseInitTypeDef servo_timer;
-//TIM_OCInitTypeDef servo_timer_PWM;
-//GPIO_InitTypeDef port;
+extern TIM_TimeBaseInitTypeDef timer;
+extern TIM_OCInitTypeDef timerPWM;
 
 #endif /* STATE_H_ */

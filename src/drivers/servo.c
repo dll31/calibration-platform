@@ -16,6 +16,11 @@
 float k1 = 20;
 float b1 = 40;
 
+TIM_TimeBaseInitTypeDef timer;
+TIM_OCInitTypeDef timerPWM;
+
+#define FCLK	72000000
+#define PRESC	72
 
 
 void servo_init(void) {
@@ -23,6 +28,7 @@ void servo_init(void) {
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
 
+    GPIO_InitTypeDef port;
     GPIO_StructInit(&port);
     port.GPIO_Mode = GPIO_Mode_AF_PP;
     port.GPIO_Pin = GPIO_Pin_6;
@@ -30,8 +36,8 @@ void servo_init(void) {
     GPIO_Init(GPIOB, &port);
 
     TIM_TimeBaseStructInit(&timer);
-    timer.TIM_Prescaler = 1000;
-    timer.TIM_Period = 63400;
+    timer.TIM_Prescaler = PRESC;
+    timer.TIM_Period = FCLK / (PRESC * 50);
     timer.TIM_ClockDivision = 0;
     timer.TIM_CounterMode = TIM_CounterMode_Up;
     TIM_TimeBaseInit(TIM4, &timer);

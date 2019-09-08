@@ -30,14 +30,23 @@
 int main(int argc, char* argv[])
 {
 	timer_start();
-
+	timer_sleep(1000);
 	servo_init();
+	timer_sleep(1000);
 
-	timer_sleep(10000);
+	int cnt = 0;
 
-	for (int  i = 0; i < 100; i++){
-		TIM4->CCR1 = i;
-//		trace_printf("%d ", i);
+	TIM4->CCR1 = 2000;
+	timer_sleep(5000);
+	TIM4->CCR1 = 1000;
+
+	for (;;)
+	{
+		TIM4->CCR1 = 1000 + 50*cnt;
+		trace_printf("%d\n", cnt);
+		cnt = (cnt + 1) % 20;
+
+		timer_sleep(500);
 	}
 
 //	servo_init();
