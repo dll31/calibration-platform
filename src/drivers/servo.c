@@ -11,16 +11,25 @@
 #include <stdlib.h>
 #include "math.h"
 
+#include "Timer.h"
 #include "../state.h"
+#include "servo.h"
+
+
+#define FCLK	72000000
+#define PRESC	72
+
+#define MOTOR_PIN	GPIO_Pin_5
+#define MOTOR_TIME	200			// in ms
+
 
 float k1 = 20;
 float b1 = 40;
 
 TIM_TimeBaseInitTypeDef timer;
-TIM_OCInitTypeDef timerPWM;
+TIM_OCInitTypeDef	timerPWM;
+GPIO_InitTypeDef	motor;
 
-#define FCLK	72000000
-#define PRESC	72
 
 
 void servo_init(void) {
@@ -53,42 +62,35 @@ void servo_init(void) {
 }
 
 
-//void servo_init(void){
-//	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, 1);
-//
-//	port.GPIO_Mode = GPIO_Mode_AF_PP;
-//	port.GPIO_Pin = GPIO_Pin_9;
-//	port.GPIO_Speed = GPIO_Speed_50MHz;
-//	GPIO_Init(GPIOA, &port);
-//}
-//
-//void servo_timer_init(void){
-//
-//	RCC_APB1PeriphClockCmd(, ENABLE);
-//
-//	servo_timer.TIM_Prescaler = 1000;
-//	servo_timer.TIM_Period = 63400;
-//	servo_timer.TIM_CounterMode = TIM_CounterMode_Up;
-//	servo_timer.TIM_RepetitionCounter = 0;
-//
-//	TIM1->CCER |= (TIM_CCER_CC1E);
-//
-//	TIM_TimeBaseInit(TIM1, &servo_timer);
-//
-//	TIM_Cmd(TIM1, 1);
-//}
-//
-//void change_pulse(uint32_t pulse){
-//	servo_timer_PWM.TIM_Pulse = pulse;
-//	servo_timer_PWM.TIM_OCMode = TIM_OCMode_PWM1;
-//	servo_timer_PWM.TIM_OutputState = TIM_OutputState_Enable;
-//	servo_timer_PWM.TIM_OCPolarity = TIM_OCPolarity_High;
-//	TIM_OC1Init(TIM1, &servo_timer_PWM);
-//
-//	TIM1->CR1 |= TIM_CR1_CEN;
-//}
-//
-//void servo_rotate(double angle){
-//	uint32_t pulse = (uint32_t)round(k1 * angle + b1);
-//	change_pulse(pulse);
-//}
+void servo_start_pos(void)
+{
+	TIM4->CCR1 = SERVO_MIN;
+}
+
+
+void servo_next_pos(void)
+{
+	static int cnt = 0;
+	TIM4->CCR1 = SERVO_MIN + SERVO_STEP * cnt;
+	cnt = (cnt + 1) % SERVO_STEPS;
+}
+
+
+void motor_init(void)
+{
+	GPIO_StructInit(&motor);
+	motor.GPIO_Mode = GPIO_Mode_Out_PP;
+	motor.GPIO_Pin = GPIO_Pin_5;
+	motor.GPIO_Speed = GPIO_Speed_2MHz;
+	GPIO_Init(GPIOB, &motor);
+
+	GPIO_WriteBit(GPIOB, MOTOR_PIN, Bit_RESET);
+}
+
+void motor_next_pos(void)
+{
+	GPIO_WriteBit(GPIOB, MOTOR_PIN, Bit_SET);
+	timer_sleep(MOTOR_TIME);
+	GPIO_WriteBit(GPIOB, MOTOR_PIN, Bit_RESET);
+}
+

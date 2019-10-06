@@ -32,70 +32,31 @@ int main(int argc, char* argv[])
 	timer_start();
 	timer_sleep(500);
 	servo_init();
+	motor_init();
 	timer_sleep(500);
 
 	timer_sleep(5000);
 
-	int min = 450, max = 2550;
-	int cnt = 0, steps = 50;
-
 	for (;;)
 	{
-		TIM4->CCR1 = min + (max - min) * cnt / steps;
-		trace_printf("%d\n", cnt);
-		cnt = (cnt + 1) % steps;
-
-		timer_sleep(50);
+		servo_next_pos();
+		timer_sleep(200);
 	}
 
-//	servo_init();
-//	servo_timer_init();
-////	uint8_t hor_rot = 18;
-//	uint8_t vert_rot = 10;
-////	uint8_t grad_one_hor_rot = 360 / hor_rot;
-////	uint8_t grad_one_vert_rot = 180 / vert_rot;
-//	//inits
-//
-//	servo_rotate(100);
+	int motor_cnt = 12;
+	for (int i = 0; i < motor_cnt; i++)
+	{
+		for (int k = 0; k < SERVO_STEPS; k++)
+		{
+			servo_next_pos();
+			timer_sleep(200);
+		}
+		servo_start_pos();
+		motor_next_pos();
+	}
 
-//	for (int i = 0; i < 10; i++){
-//		//запуск двигателя
-//		for (int j = 0; j < vert_rot; j++){
-//			if (i % 2 == 0) {change_pulse(j * vert_rot);}
-//			else {change_pulse(j * (vert_rot - j));}
-//			for (int f = 0; f < 1000000; f++) {volatile int x = 0;}
-//			//замер
-//		}
-//	}
 
-  /*// Send a greeting to the trace device (skipped on Release).
-  trace_puts("Hello ARM World!");
-
-  // At this stage the system clock should have already been configured
-  // at high speed.
-  trace_printf("System clock: %u Hz\n", SystemCoreClock);
-
-  timer_start();
-
-  blink_led_init();
-  
-  uint32_t seconds = 0;
-
-  // Infinite loop
-  while (1)
-    {
-      blink_led_on();
-      timer_sleep(seconds == 0 ? TIMER_FREQUENCY_HZ : BLINK_ON_TICKS);
-
-      blink_led_off();
-      timer_sleep(BLINK_OFF_TICKS);
-
-      ++seconds;
-
-      // Count seconds on the trace device.
-      trace_printf("Second %u\n", seconds);
-    }*/
-  // Infinite loop, never return.
+	return 0;
 }
 
 #pragma GCC diagnostic pop
