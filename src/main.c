@@ -37,11 +37,12 @@ int main(int argc, char* argv[])
 
 	timer_sleep(5000);
 
-	for (;;)
-	{
-		servo_next_pos();
-		timer_sleep(200);
-	}
+//	for (;;)
+//	{
+//		servo_next_pos();
+//		timer_sleep(200);
+//
+//	}
 
 	int motor_cnt = 12;
 	for (int i = 0; i < motor_cnt; i++)

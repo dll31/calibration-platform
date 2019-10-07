@@ -20,7 +20,7 @@
 #define PRESC	72
 
 #define MOTOR_PIN	GPIO_Pin_5
-#define MOTOR_TIME	200			// in ms
+#define MOTOR_TIME	321			// in ms
 
 
 float k1 = 20;
