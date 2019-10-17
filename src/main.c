@@ -10,6 +10,7 @@
 //#include "BlinkLed.h"
 #include "state.h"
 #include "drivers/servo.h"
+#include "drivers/lsm6ds3_tools.h"
 
 
 // ----- Timing definitions -------------------------------------------------
