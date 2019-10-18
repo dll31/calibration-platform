@@ -28,8 +28,14 @@
 #pragma GCC diagnostic ignored "-Wmissing-declarations"
 #pragma GCC diagnostic ignored "-Wreturn-type"
 
+
+float accel[3] = {0, 0, 0};
+
 int main(int argc, char* argv[])
 {
+
+	trace_printf("lsm init error %d", lsm6ds3_platform_init());
+
 	timer_start();
 	timer_sleep(500);
 	servo_init();
@@ -45,6 +51,10 @@ int main(int argc, char* argv[])
 //
 //	}
 
+	lsm6ds3_get_xl_data_g(accel);
+
+	trace_printf("data %f %f %f", accel[0], accel[1], accel[2]);
+/*
 	int motor_cnt = 12;
 	for (int i = 0; i < motor_cnt; i++)
 	{
@@ -56,7 +66,7 @@ int main(int argc, char* argv[])
 		servo_start_pos();
 		motor_next_pos();
 	}
-
+*/
 
 	return 0;
 }

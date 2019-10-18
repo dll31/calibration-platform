@@ -36,15 +36,15 @@
 //#define YZ_ACCEL_TRANSFORM_MATIX	 0.000322
 
 // SECOND
-#define X_ACCEL_OFFSET		0.014983
-#define Y_ACCEL_OFFSET		0.086828
-#define Z_ACCEL_OFFSET		0.028621
-#define XX_ACCEL_TRANSFORM_MATIX	 1.003357
-#define YY_ACCEL_TRANSFORM_MATIX	 1.009286
-#define ZZ_ACCEL_TRANSFORM_MATIX	 1.002768
-#define XY_ACCEL_TRANSFORM_MATIX	 0.000575
-#define XZ_ACCEL_TRANSFORM_MATIX	-0.002213
-#define YZ_ACCEL_TRANSFORM_MATIX	 0.001784
+#define X_ACCEL_OFFSET		0.0
+#define Y_ACCEL_OFFSET		0.0
+#define Z_ACCEL_OFFSET		0.0
+#define XX_ACCEL_TRANSFORM_MATIX	 1.0
+#define YY_ACCEL_TRANSFORM_MATIX	 1.0
+#define ZZ_ACCEL_TRANSFORM_MATIX	 1.0
+#define XY_ACCEL_TRANSFORM_MATIX	 0.0
+#define XZ_ACCEL_TRANSFORM_MATIX	 0.0
+#define YZ_ACCEL_TRANSFORM_MATIX	 0.0
 
 
 typedef union{
@@ -62,6 +62,22 @@ stmdev_ctx_t lsm6ds3_dev_ctx;
 
 #define LSM6DS3_I2C_ADD	0b11010111
 
+void i2c_start_transmission()
+{
+	I2C_GenerateSTART(I2C2, ENABLE);
+	while (!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_MODE_SELECT));
+
+	I2C_Send7bitAddress(I2C2, LSM6DS3_I2C_ADD, I2C_Direction_Transmitter);
+	while (!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
+}
+
+
+void i2c_stop_transmission()
+{
+	I2C_GenerateSTOP(I2C2, ENABLE);
+
+	while (!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
+}
 
 static int32_t platform_write(void *handle, uint8_t reg, uint8_t *bufp, uint16_t len)
 {
@@ -69,6 +85,15 @@ static int32_t platform_write(void *handle, uint8_t reg, uint8_t *bufp, uint16_t
 
 	if (handle == &i2c_lsm6ds3)
 	{
+		i2c_start_transmission();
+
+		for(int i = 0; i < len; i++)
+		{
+			I2C_SendData(I2C2, bufp[i]);
+			while (!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
+		}
+
+		i2c_stop_transmission();
 //		error = HAL_I2C_Mem_Write(handle, LSM6DS3_I2C_ADD, reg, I2C_MEMADD_SIZE_8BIT, bufp, len, LSM_TIMEOUT); TODO:
 	}
 
@@ -83,6 +108,15 @@ static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp, uint16_t 
 
 	if (handle == &i2c_lsm6ds3)
 	{
+		i2c_start_transmission();
+
+		for(int i = 0; i < len; i++)
+		{
+			bufp[i] = I2C_ReceiveData(I2C2);
+			while (!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_BYTE_RECEIVED));
+		}
+
+		i2c_stop_transmission();
 //		error = HAL_I2C_Mem_Read(handle, LSM6DS3_I2C_ADD, reg, I2C_MEMADD_SIZE_8BIT, bufp, len, LSM_TIMEOUT); TODO:
 	}
 
@@ -193,17 +227,17 @@ uint32_t lsm6ds3_get_xl_data_g(float* accel)
 	accel[1] = lsm6ds3_from_fs4g_to_mg(data_raw_acceleration.i16bit[1]) * MG_TO_MPS2;
 	accel[2] = lsm6ds3_from_fs4g_to_mg(data_raw_acceleration.i16bit[2]) * MG_TO_MPS2;
 
-	if (!IMU_CALIBRATION)
-	{
-		//	Accelerometer bias and transform matrix (to provide real values)
-		float offset_vector[3] = {X_ACCEL_OFFSET, Y_ACCEL_OFFSET, Z_ACCEL_OFFSET};
-		float transform_matrix[3][3] =	{{XX_ACCEL_TRANSFORM_MATIX, XY_ACCEL_TRANSFORM_MATIX, XZ_ACCEL_TRANSFORM_MATIX},
-										 {XY_ACCEL_TRANSFORM_MATIX, YY_ACCEL_TRANSFORM_MATIX, YZ_ACCEL_TRANSFORM_MATIX},
-										 {XZ_ACCEL_TRANSFORM_MATIX, YZ_ACCEL_TRANSFORM_MATIX, ZZ_ACCEL_TRANSFORM_MATIX}};
-
-		vmv(accel, offset_vector, accel);
-		mxv(transform_matrix, accel, accel);
-	}
+//	if (!IMU_CALIBRATION)
+//	{
+//		//	Accelerometer bias and transform matrix (to provide real values)
+//		float offset_vector[3] = {X_ACCEL_OFFSET, Y_ACCEL_OFFSET, Z_ACCEL_OFFSET};
+//		float transform_matrix[3][3] =	{{XX_ACCEL_TRANSFORM_MATIX, XY_ACCEL_TRANSFORM_MATIX, XZ_ACCEL_TRANSFORM_MATIX},
+//										 {XY_ACCEL_TRANSFORM_MATIX, YY_ACCEL_TRANSFORM_MATIX, YZ_ACCEL_TRANSFORM_MATIX},
+//										 {XZ_ACCEL_TRANSFORM_MATIX, YZ_ACCEL_TRANSFORM_MATIX, ZZ_ACCEL_TRANSFORM_MATIX}};
+//
+//		vmv(accel, offset_vector, accel);
+//		mxv(transform_matrix, accel, accel);
+//	}
 
 end:
 	return error;
