@@ -30,6 +30,43 @@
 
 
 float accel[3] = {0, 0, 0};
+uint16_t msg_len = 0;
+state_msg_t msg;
+
+void usart_init()
+{
+	/* Enable USART1 and GPIOA clock */
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1 | RCC_APB2Periph_GPIOA, ENABLE);
+
+    /* Configure the GPIOs */
+    GPIO_InitTypeDef GPIO_InitStructure;
+
+    /* Configure USART1 Tx (PA.09) as alternate function push-pull */
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+    /* Configure USART1 Rx (PA.10) as input floating */
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+    /* Configure the USART1 */
+    USART_InitTypeDef USART_InitStructure;
+
+    USART_InitStructure.USART_BaudRate = 115200;
+    USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+    USART_InitStructure.USART_StopBits = USART_StopBits_1;
+    USART_InitStructure.USART_Parity = USART_Parity_No;
+    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+
+    USART_Init(USART1, &USART_InitStructure);
+
+    /* Enable USART1 */
+    USART_Cmd(USART1, ENABLE);
+}
 
 int main(int argc, char* argv[])
 {
@@ -68,9 +105,33 @@ int main(int argc, char* argv[])
 	}
 */
 
+//	while(!(USART1->SR | (1 << USART_SR_RXNE))){volatile int x = 0;};
+//	uint8_t tmp = USART1->DR;
+//	if (tmp == 42){
+//		for (int i = 0; i < msg_len; i++)
+//		{
+//
+//		}
+//	}
+
+	int i = 0;
+
+	uint8_t* buff = (uint8_t*)msg;
+	uint8_t len = sizeof(*msg);
+
+	LL_USART_ClearFlag_TC(USART1);
+	while (len--) {
+		while (!LL_USART_IsActiveFlag_TXE(USART1));
+		LL_USART_TransmitData8(USART1, buff[i++]);
+	}
+	while (!LL_USART_IsActiveFlag_TC(USART1));
+
 	return 0;
 }
 
 #pragma GCC diagnostic pop
+
+
+
 
 // ----------------------------------------------------------------------------
