@@ -60,15 +60,15 @@ I2C_InitTypeDef	i2c_lsm6ds3;
 GPIO_InitTypeDef  GPIO_InitStructure;
 lsm6ds3_ctx_t lsm6ds3_dev_ctx;
 
-#define LSM6DS3_I2C_ADD	0b11010111
+#define LSM6DS3_I2C_ADD	0b11010100
 
 void i2c_start_transmission()
 {
 	I2C_GenerateSTART(I2C2, ENABLE);
-	while (!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_MODE_SELECT));
+//	while (!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_MODE_SELECT));
 
 	I2C_Send7bitAddress(I2C2, LSM6DS3_I2C_ADD, I2C_Direction_Transmitter);
-	while (!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
+//	while (!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
 }
 
 
@@ -76,7 +76,7 @@ void i2c_stop_transmission()
 {
 	I2C_GenerateSTOP(I2C2, ENABLE);
 
-	while (!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
+//	while (!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
 }
 
 static int32_t platform_write(void *handle, uint8_t reg, uint8_t *bufp, uint16_t len)
@@ -87,10 +87,13 @@ static int32_t platform_write(void *handle, uint8_t reg, uint8_t *bufp, uint16_t
 	{
 		i2c_start_transmission();
 
+		I2C_SendData(I2C2, reg);
+//		while (!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
+
 		for(int i = 0; i < len; i++)
 		{
 			I2C_SendData(I2C2, bufp[i]);
-			while (!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
+//			while (!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
 		}
 
 		i2c_stop_transmission();
@@ -110,10 +113,19 @@ static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp, uint16_t 
 	{
 		i2c_start_transmission();
 
+		I2C_SendData(I2C2, reg);
+//		while (!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
+
+		I2C_GenerateSTART(I2C2, ENABLE);
+//		while (!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_MODE_SELECT));
+
+		I2C_SendData(I2C2, LSM6DS3_I2C_ADD | (1 << 0));
+//		while (!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
+
 		for(int i = 0; i < len; i++)
 		{
 			bufp[i] = I2C_ReceiveData(I2C2);
-			while (!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_BYTE_RECEIVED));
+//			while (!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_BYTE_RECEIVED));
 		}
 
 		i2c_stop_transmission();
@@ -184,6 +196,17 @@ int32_t lsm6ds3_platform_init()
 
 	//	Set needed bus parameters
 	error |= lsm6ds3_bus_init(lsm6ds3_dev_ctx.handle);
+
+	// Check who_am_i
+//	error |= lsm6ds3_device_id_get(&lsm6ds3_dev_ctx, &whoamI);
+//	if (whoamI != LSM6DS3_ID)
+//	{
+//		trace_printf("lsm6ds3 not found, %d\terror: %d\n", whoamI, error);
+//		return -19;
+//	}
+//	else
+//		trace_printf("lsm6ds3 OK\n");
+
 
 	// Reset to defaults
 	error |= lsm6ds3_reset_set(&lsm6ds3_dev_ctx, PROPERTY_ENABLE);
