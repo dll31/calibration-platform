@@ -47,10 +47,10 @@
 #define YZ_ACCEL_TRANSFORM_MATIX	 0.0
 
 
-typedef union{
-  int16_t i16bit[3];
-  uint8_t u8bit[6];
-} axis3bit16_t;
+//typedef union{
+//  int16_t i16bit[3];
+//  uint8_t u8bit[6];
+//} axis3bit16_t;
 
 
 static uint8_t whoamI, rst;
@@ -58,7 +58,7 @@ static uint8_t whoamI, rst;
 //SPI_HandleTypeDef	spi_lsm6ds3;
 I2C_InitTypeDef	i2c_lsm6ds3;
 GPIO_InitTypeDef  GPIO_InitStructure;
-stmdev_ctx_t lsm6ds3_dev_ctx;
+lsm6ds3_ctx_t lsm6ds3_dev_ctx;
 
 #define LSM6DS3_I2C_ADD	0b11010111
 
