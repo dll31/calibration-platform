@@ -29,7 +29,7 @@
 #pragma GCC diagnostic ignored "-Wreturn-type"
 
 
-float accel[3] = {122.122, 125.125, 124.124};
+float accel[3] = {0.0, 0.0, 0.0};
 uint16_t msg_len = 0;
 state_msg_t msg;
 
@@ -70,79 +70,99 @@ void usart_init()
 
 void msg_send(state_msg_t* msg)
 {
-	int i = -1;
+	int i = 0;
 
 	uint8_t* buff = (uint8_t*)msg;
-	uint8_t len = sizeof(*msg) - 1;
+	uint8_t len = sizeof(*msg);
 
 //		USART_ClearFlag(USART1, USART_FLAG_TC);
-		while (i < len) {
+		while (len--) {
 			while (!USART_GetFlagStatus(USART1, USART_FLAG_TXE));
+//			trace_printf("data %d %x\n", i, buff[i]);
 			USART_SendData(USART1, buff[i++]);
-			trace_printf("data %d %x\n", i, buff[i]);
+
 		}
 }
 
 int main(int argc, char* argv[])
 {
 
-//	trace_printf("lsm init error %d", lsm6ds3_platform_init());
+	trace_printf("lsm init error %d", lsm6ds3_platform_init());
 
 	timer_start();
-	timer_sleep(500);
-	servo_init();
-	motor_init();
-	timer_sleep(500);
-
-	timer_sleep(5000);
-
-//	for (;;)
-//	{
-//		servo_next_pos();
-//		timer_sleep(200);
-//
-//	}
-
-//	lsm6ds3_get_xl_data_g(accel);
-
-//	trace_printf("data %f %f %f", accel[0], accel[1], accel[2]);
-/*
-	int motor_cnt = 12;
-	for (int i = 0; i < motor_cnt; i++)
-	{
-		for (int k = 0; k < SERVO_STEPS; k++)
-		{
-			servo_next_pos();
-			timer_sleep(200);
-		}
-		servo_start_pos();
-		motor_next_pos();
-	}
-*/
 	usart_init();
 
-	msg_len = 1;
-	uint8_t tmp;
-
-	do {
-		tmp = 0;
-		if (USART_GetFlagStatus(USART1, USART_FLAG_RXNE))
-		{
-			USART_ClearFlag(USART1, USART_FLAG_RXNE);
-			tmp = USART1->DR;
-
-			trace_printf("tmp %d\n", tmp);
-
-		};
-	} while(tmp != 42);
-
-	for (int i = 0; i < 3; i++)
+	if (CALIBRATION)
 	{
-		msg.accel[i] = accel[i];
-	}
-	msg_send(&msg);
+		timer_sleep(500);
+		servo_init();
+		motor_init();
+		timer_sleep(500);
 
-	return 0;
+		timer_sleep(5000);
+
+	//	for (;;)
+	//	{
+	//		servo_next_pos();
+	//		timer_sleep(200);
+	//
+	//	}
+
+	//	lsm6ds3_get_xl_data_g(accel);
+
+	//	trace_printf("data %f %f %f", accel[0], accel[1], accel[2]);
+	/*
+		int motor_cnt = 12;
+		for (int i = 0; i < motor_cnt; i++)
+		{
+			for (int k = 0; k < SERVO_STEPS; k++)
+			{
+				servo_next_pos();
+				timer_sleep(200);
+			}
+			servo_start_pos();
+			motor_next_pos();
+		}
+	*/
+
+
+		msg_len = 1;
+		uint8_t tmp;
+
+		do {
+			tmp = 0;
+			if (USART_GetFlagStatus(USART1, USART_FLAG_RXNE))
+			{
+				USART_ClearFlag(USART1, USART_FLAG_RXNE);
+				tmp = USART1->DR;
+
+				trace_printf("tmp %d\n", tmp);
+			}
+
+		} while(tmp != 42);
+
+		for (int i = 0; i < 3; i++)
+		{
+			msg.accel[i] = accel[i];
+		}
+		for (int i = 0; i < 20; i++)
+		{
+			msg_send(&msg);
+		}
+
+
+		return 0;
+	}
+	else
+	{
+		lsm6ds3_get_xl_data_g(accel);
+		for (int i = 0; i < 3; i++)
+		{
+			msg.accel[i] = accel[i];
+		}
+		msg_send(&msg);
+	}
+
 }
 
 #pragma GCC diagnostic pop

@@ -13,6 +13,10 @@
 #include <stm32f10x_gpio.h>
 #include <stdlib.h>
 
+
+#define CALIBRATION  1
+
+
 //--------- LSM6DS3 ---------------
 #define LSM6DS3_PORT		GPIOA
 #define LSM6DS3_CS_PIN		GPIO_PIN_12
