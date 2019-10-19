@@ -27,8 +27,8 @@
 typedef struct
 {
     float accel[3];
-
 }__attribute__((packed, aligned(1))) state_msg_t;
+
 
 
 extern TIM_TimeBaseInitTypeDef timer;

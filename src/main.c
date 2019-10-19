@@ -29,7 +29,7 @@
 #pragma GCC diagnostic ignored "-Wreturn-type"
 
 
-float accel[3] = {0, 0, 0};
+float accel[3] = {122.122, 125.125, 124.124};
 uint16_t msg_len = 0;
 state_msg_t msg;
 
@@ -68,10 +68,25 @@ void usart_init()
     USART_Cmd(USART1, ENABLE);
 }
 
+void msg_send(state_msg_t* msg)
+{
+	int i = -1;
+
+	uint8_t* buff = (uint8_t*)msg;
+	uint8_t len = sizeof(*msg) - 1;
+
+//		USART_ClearFlag(USART1, USART_FLAG_TC);
+		while (i < len) {
+			while (!USART_GetFlagStatus(USART1, USART_FLAG_TXE));
+			USART_SendData(USART1, buff[i++]);
+			trace_printf("data %d %x\n", i, buff[i]);
+		}
+}
+
 int main(int argc, char* argv[])
 {
 
-	trace_printf("lsm init error %d", lsm6ds3_platform_init());
+//	trace_printf("lsm init error %d", lsm6ds3_platform_init());
 
 	timer_start();
 	timer_sleep(500);
@@ -88,9 +103,9 @@ int main(int argc, char* argv[])
 //
 //	}
 
-	lsm6ds3_get_xl_data_g(accel);
+//	lsm6ds3_get_xl_data_g(accel);
 
-	trace_printf("data %f %f %f", accel[0], accel[1], accel[2]);
+//	trace_printf("data %f %f %f", accel[0], accel[1], accel[2]);
 /*
 	int motor_cnt = 12;
 	for (int i = 0; i < motor_cnt; i++)
@@ -104,27 +119,28 @@ int main(int argc, char* argv[])
 		motor_next_pos();
 	}
 */
+	usart_init();
 
-//	while(!(USART1->SR | (1 << USART_SR_RXNE))){volatile int x = 0;};
-//	uint8_t tmp = USART1->DR;
-//	if (tmp == 42){
-//		for (int i = 0; i < msg_len; i++)
-//		{
-//
-//		}
-//	}
+	msg_len = 1;
+	uint8_t tmp;
 
-	int i = 0;
+	do {
+		tmp = 0;
+		if (USART_GetFlagStatus(USART1, USART_FLAG_RXNE))
+		{
+			USART_ClearFlag(USART1, USART_FLAG_RXNE);
+			tmp = USART1->DR;
 
-	uint8_t* buff = (uint8_t*)msg;
-	uint8_t len = sizeof(*msg);
+			trace_printf("tmp %d\n", tmp);
 
-	LL_USART_ClearFlag_TC(USART1);
-	while (len--) {
-		while (!LL_USART_IsActiveFlag_TXE(USART1));
-		LL_USART_TransmitData8(USART1, buff[i++]);
+		};
+	} while(tmp != 42);
+
+	for (int i = 0; i < 3; i++)
+	{
+		msg.accel[i] = accel[i];
 	}
-	while (!LL_USART_IsActiveFlag_TC(USART1));
+	msg_send(&msg);
 
 	return 0;
 }
